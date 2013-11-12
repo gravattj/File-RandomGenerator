@@ -25,6 +25,7 @@ sub test_constructor {
 }
 
 sub test_generate {
+	
 	my $tmpdir = tempdir( DIR => "/tmp" );
 	my $frg = File::RandomGenerator->new( root_dir => $tmpdir );
 	my $expected_cnt = get_file_cnt( $frg->root_dir ) + $frg->num_files;
