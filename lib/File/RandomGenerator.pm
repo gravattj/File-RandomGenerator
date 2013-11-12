@@ -23,6 +23,7 @@ use File::Temp;
 use Carp;
 use Smart::Args;
 use Data::Dumper;
+use Cwd;
 
 =attr depth
 
@@ -123,6 +124,7 @@ Generate files and directories.
 sub generate {
 	my $self = shift;
 
+	my $orig_dir = getcwd();
 	my $file_tmp = File::Temp->new( UNLINK => $self->unlink );
 
 	my $list = $self->_file_temp_list;
@@ -136,6 +138,8 @@ sub generate {
 					   curr_dir   => $self->root_dir,
 	);
 
+	chdir $orig_dir or confess "failed to chdir back to $orig_dir: $!";
+	
 	return 1;
 }
 
