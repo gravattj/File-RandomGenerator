@@ -8,8 +8,11 @@ package File::RandomGenerator;
   $frg->generate;
 
   my $frg = File::RandomGenerator->new( 
-	  depth => 2,
-	  num_files = 2 
+	  depth     => 2,
+	  width     => 3,
+	  num_files => 2,
+	  root_dir  => '/tmp',
+	  unlink    => 1,
   );
   $frg->generate;
 
@@ -25,6 +28,13 @@ use Smart::Args;
 use Data::Dumper;
 use Cwd;
 
+use constant DEPTH => 1;
+use constant WIDTH => 1;
+use constant FILE_CNT => 10;
+use constant ROOT_DIR => '/tmp';
+use constant UNLINK => 0;
+
+
 =attr depth
 
 Max directory depth.  Default is 1.
@@ -33,7 +43,7 @@ Max directory depth.  Default is 1.
 
 has 'depth' => ( is      => 'rw',
 				 isa     => 'Int',
-				 default => 1
+				 default => DEPTH
 );
 
 =attr num_files
@@ -50,7 +60,7 @@ Default is 10.
 
 has 'num_files' => ( is      => 'rw',
 					 isa     => 'Int',
-					 default => 10
+					 default => FILE_CNT
 );
 
 
@@ -62,7 +72,7 @@ Directory to put temp files and dirs.  Default is /tmp.
 
 has 'root_dir' => ( is      => 'rw',
 					isa     => 'Str',
-					default => '/tmp',
+					default => ROOT_DIR,
 );
 
 has '_template' => ( is      => 'rw',
@@ -78,7 +88,7 @@ Flag to indicate whether or not to unlink the files and directories after the ob
 
 has 'unlink' => ( is      => 'rw',
 				  isa     => 'Bool',
-				  default => 1
+				  default => UNLINK
 );
 
 =attr width
@@ -89,7 +99,7 @@ Number of subdirs to create at each depth level.
 
 has 'width' => ( is      => 'rw',
 				 isa     => 'Int',
-				 default => 2
+				 default => WIDTH
 );
 
 
@@ -131,7 +141,7 @@ sub generate {
 	push @$list, $file_tmp;
 	$self->_file_temp_list($list);
 
-	$self->_gen_level( file_tmp   => $file_tmp,
+	my $cnt = $self->_gen_level( file_tmp   => $file_tmp,
 					   curr_depth => 1,
 					   want_num   => $self->num_files,
 					   want_width => $self->width,
@@ -140,7 +150,7 @@ sub generate {
 
 	chdir $orig_dir or confess "failed to chdir back to $orig_dir: $!";
 	
-	return 1;
+	return $cnt;
 }
 
 sub _gen_level {
@@ -152,6 +162,8 @@ sub _gen_level {
 		my $want_width => 'Int',
 		my $curr_dir   => 'Str';
 
+	my $cnt = 0;
+	
 	for ( my $i = 0; $i < $want_num; $i++ ) {
 
 		my ( $fh, $filename )
@@ -160,6 +172,7 @@ sub _gen_level {
 								   UNLINK => 0
 			);
 		close $fh;
+		$cnt++;
 	}
 
 	if ( $curr_depth < $self->depth ) {
@@ -169,7 +182,7 @@ sub _gen_level {
 			my $dir = $file_tmp->newdir( DIR => $curr_dir, CLEANUP => 0 );
 			chdir $dir or confess "failed to chdir $dir: $!";
 			
-			$self->_gen_level( file_tmp   => $file_tmp,
+			$cnt+= $self->_gen_level( file_tmp   => $file_tmp,
 							   curr_depth => $curr_depth + 1,
 							   want_num   => $want_num * 2,
 							   want_width => $want_width * 2,
@@ -179,6 +192,8 @@ sub _gen_level {
 			chdir '..' or confess "failed to chdir: $!";
 		}
 	}
+	
+	return $cnt;
 }
 
 __PACKAGE__->meta->make_immutable;
