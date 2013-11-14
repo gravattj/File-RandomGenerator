@@ -28,12 +28,11 @@ use Smart::Args;
 use Data::Dumper;
 use Cwd;
 
-use constant DEPTH => 1;
-use constant WIDTH => 1;
+use constant DEPTH    => 1;
+use constant WIDTH    => 1;
 use constant FILE_CNT => 10;
 use constant ROOT_DIR => '/tmp';
-use constant UNLINK => 0;
-
+use constant UNLINK   => 0;
 
 =attr depth
 
@@ -63,7 +62,6 @@ has 'num_files' => ( is      => 'rw',
 					 default => FILE_CNT
 );
 
-
 =attr root_dir
 
 Directory to put temp files and dirs.  Default is /tmp.
@@ -76,8 +74,8 @@ has 'root_dir' => ( is      => 'rw',
 );
 
 has '_template' => ( is      => 'rw',
-					isa     => 'Str',
-					default => 'frgXXXXXX'
+					 isa     => 'Str',
+					 default => 'frgXXXXXX'
 );
 
 =attr unlink
@@ -101,7 +99,6 @@ has 'width' => ( is      => 'rw',
 				 isa     => 'Int',
 				 default => WIDTH
 );
-
 
 #
 # private attributes
@@ -141,20 +138,21 @@ sub generate {
 	push @$list, $file_tmp;
 	$self->_file_temp_list($list);
 
-	my $cnt = $self->_gen_level( file_tmp   => $file_tmp,
-					   curr_depth => 1,
-					   want_num   => $self->num_files,
-					   want_width => $self->width,
-					   curr_dir   => $self->root_dir,
+	my $cnt = $self->_gen_level(
+				   file_tmp   => $file_tmp,
+				   curr_depth => 1,
+				   want_num   => $self->num_files,
+				   want_width => $self->width,
+				   curr_dir   => $self->root_dir,
 	);
 
 	chdir $orig_dir or confess "failed to chdir back to $orig_dir: $!";
-	
+
 	return $cnt;
 }
 
 sub _gen_level {
-	
+
 	args my $self      => __PACKAGE__,
 		my $file_tmp   => 'File::Temp',
 		my $curr_depth => 'Int',
@@ -163,7 +161,7 @@ sub _gen_level {
 		my $curr_dir   => 'Str';
 
 	my $cnt = 0;
-	
+
 	for ( my $i = 0; $i < $want_num; $i++ ) {
 
 		my ( $fh, $filename )
@@ -181,18 +179,18 @@ sub _gen_level {
 
 			my $dir = $file_tmp->newdir( DIR => $curr_dir, CLEANUP => 0 );
 			chdir $dir or confess "failed to chdir $dir: $!";
-			
-			$cnt+= $self->_gen_level( file_tmp   => $file_tmp,
-							   curr_depth => $curr_depth + 1,
-							   want_num   => $want_num * 2,
-							   want_width => $want_width * 2,
-							   curr_dir   => $dir->{DIRNAME},
+
+			$cnt += $self->_gen_level( file_tmp   => $file_tmp,
+									   curr_depth => $curr_depth + 1,
+									   want_num   => $want_num * 2,
+									   want_width => $want_width * 2,
+									   curr_dir   => $dir->{DIRNAME},
 			);
 
 			chdir '..' or confess "failed to chdir: $!";
 		}
 	}
-	
+
 	return $cnt;
 }
 
