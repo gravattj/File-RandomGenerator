@@ -127,7 +127,7 @@ sub BUILD {
 
 =method generate()
 
-Generate files and directories.
+Generate files and directories.  Returns the number of files created.
 
 =cut
 
