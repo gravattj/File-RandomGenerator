@@ -1,0 +1,10 @@
+.includepath
+.project
+.git
+blib
+.mysql-util.log
+build.sh
+cpan-upload.sh
+MANIFEST.bak
+.gz
+cover_db

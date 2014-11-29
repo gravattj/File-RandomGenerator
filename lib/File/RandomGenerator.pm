@@ -1,6 +1,16 @@
 package File::RandomGenerator;
 
-# ABSTRACT: Utility to generate a random dir tree with random files.
+=head1 NAME
+
+File::RandomGenerator - Utility to generate a random dir tree with random files.
+
+=head1 VERSION
+
+Version 0.07
+
+=cut
+
+our $VERSION = '0.25';
 
 =head1 SYNOPSIS
 
@@ -40,7 +50,8 @@ Max directory depth.  Default is 1.
 
 =cut
 
-has 'depth' => ( is      => 'rw',
+has 'depth' => (
+				 is      => 'rw',
 				 isa     => 'Int',
 				 default => DEPTH
 );
@@ -57,7 +68,8 @@ Default is 10.
 
 =cut
 
-has 'num_files' => ( is      => 'rw',
+has 'num_files' => (
+					 is      => 'rw',
 					 isa     => 'Int',
 					 default => FILE_CNT
 );
@@ -68,12 +80,14 @@ Directory to put temp files and dirs.  Default is /tmp.
 
 =cut
 
-has 'root_dir' => ( is      => 'rw',
+has 'root_dir' => (
+					is      => 'rw',
 					isa     => 'Str',
 					default => ROOT_DIR,
 );
 
-has '_template' => ( is      => 'rw',
+has '_template' => (
+					 is      => 'rw',
 					 isa     => 'Str',
 					 default => 'frgXXXXXX'
 );
@@ -84,7 +98,8 @@ Flag to indicate whether or not to unlink the files and directories after the ob
 
 =cut
 
-has 'unlink' => ( is      => 'rw',
+has 'unlink' => (
+				  is      => 'rw',
 				  isa     => 'Bool',
 				  default => UNLINK
 );
@@ -95,7 +110,8 @@ Number of subdirs to create at each depth level.
 
 =cut 
 
-has 'width' => ( is      => 'rw',
+has 'width' => (
+				 is      => 'rw',
 				 isa     => 'Int',
 				 default => WIDTH
 );
@@ -103,7 +119,8 @@ has 'width' => ( is      => 'rw',
 #
 # private attributes
 #
-has '_file_temp_list' => ( is      => 'rw',
+has '_file_temp_list' => (
+						   is      => 'rw',
 						   isa     => 'ArrayRef[ File::Temp ]',
 						   default => sub { [] }
 );
@@ -139,11 +156,11 @@ sub generate {
 	$self->_file_temp_list($list);
 
 	my $cnt = $self->_gen_level(
-				   file_tmp   => $file_tmp,
-				   curr_depth => 1,
-				   want_num   => $self->num_files,
-				   want_width => $self->width,
-				   curr_dir   => $self->root_dir,
+								 file_tmp   => $file_tmp,
+								 curr_depth => 1,
+								 want_num   => $self->num_files,
+								 want_width => $self->width,
+								 curr_dir   => $self->root_dir,
 	);
 
 	chdir $orig_dir or confess "failed to chdir back to $orig_dir: $!";
@@ -153,34 +170,36 @@ sub generate {
 
 sub _gen_level {
 
-	args my $self      => __PACKAGE__,
-		my $file_tmp   => 'File::Temp',
-		my $curr_depth => 'Int',
-		my $want_num   => 'Int',
-		my $want_width => 'Int',
-		my $curr_dir   => 'Str';
+	args my $self    => __PACKAGE__,
+	  my $file_tmp   => 'File::Temp',
+	  my $curr_depth => 'Int',
+	  my $want_num   => 'Int',
+	  my $want_width => 'Int',
+	  my $curr_dir   => 'Str';
 
 	my $cnt = 0;
 
-	for ( my $i = 0; $i < $want_num; $i++ ) {
+	for ( my $i = 0 ; $i < $want_num ; $i++ ) {
 
-		my ( $fh, $filename )
-			= $file_tmp->tempfile( $self->_template,
-								   DIR    => $curr_dir,
-								   UNLINK => 0
-			);
+		my ( $fh, $filename ) =
+		  $file_tmp->tempfile(
+							   $self->_template,
+							   DIR    => $curr_dir,
+							   UNLINK => 0
+		  );
 		close $fh;
 		$cnt++;
 	}
 
 	if ( $curr_depth < $self->depth ) {
 
-		for ( my $w = 0; $w < $want_width; $w++ ) {
+		for ( my $w = 0 ; $w < $want_width ; $w++ ) {
 
 			my $dir = $file_tmp->newdir( DIR => $curr_dir, CLEANUP => 0 );
 			chdir $dir or confess "failed to chdir $dir: $!";
 
-			$cnt += $self->_gen_level( file_tmp   => $file_tmp,
+			$cnt += $self->_gen_level(
+									   file_tmp   => $file_tmp,
 									   curr_depth => $curr_depth + 1,
 									   want_num   => $want_num * 2,
 									   want_width => $want_width * 2,
